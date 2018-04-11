@@ -19,15 +19,16 @@ for i, filter_size in enumerate(filterSizes):
 
         numrows = len(matrix3D[0])  # 3 rows in your example
         numcols = len(matrix3D[0][0])
-        text = np.reshape(matrix3D[0], (-1,numrows,numcols,1))
+        text = np.reshape(matrix3D[0], (1,numrows,numcols,1))
 
         input = tf.convert_to_tensor(text,dtype=tf.float32)
+
         conv = tf.nn.conv2d(
             input,
             W,
             strides=[1, 1, 1, 1],
             name="conv",
-            padding = "SAME")
+            padding = "VALID")
         
         h = tf.nn.relu(tf.nn.bias_add(conv, b), name="relu")
 
@@ -38,11 +39,12 @@ for i, filter_size in enumerate(filterSizes):
             padding='VALID',
             name="pool")
         pooled_outputs.append(pooled)
+num_filters_total = numFilters * len(filterSizes)
+h_pool = tf.concat(pooled_outputs,0)
+h_pool_flat = tf.reshape(h_pool, (-1, num_filters_total))
 
 init_op = tf.initialize_all_variables()
 
-#run the graph
 with tf.Session() as sess:
-    sess.run(init_op) #execute init_op
-    #print the random values that we sample
-    print (sess.run(pooled_outputs))
+    sess.run(init_op)
+    print (sess.run(h_pool_flat))
